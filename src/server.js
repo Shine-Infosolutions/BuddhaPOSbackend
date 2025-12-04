@@ -11,7 +11,10 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: '*',
+  origin: [
+    'http://localhost:3000',
+    'https://buddha-po-sbackend.vercel.app/'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
