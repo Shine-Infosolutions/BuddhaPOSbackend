@@ -12,6 +12,6 @@ const upload = multer({
       cb(new Error('Only image files allowed'), false);
     }
   }
-});
+}).fields([{ name: 'image', maxCount: 1 }, { name: 'imageUrl', maxCount: 1 }]);
 
 module.exports = upload;

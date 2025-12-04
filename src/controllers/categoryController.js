@@ -3,17 +3,10 @@ const cloudinary = require('../config/cloudinary');
 
 exports.createItem = async (req, res, next) => {
   try {
-    let imageUrl = null;
+    let imageUrl = req.body.imageUrl || null;
     
-    if (req.file) {
-      const result = await cloudinary.uploader.upload_stream(
-        { folder: 'buddha-pos/menu-items' },
-        (error, result) => {
-          if (error) throw error;
-          return result;
-        }
-      );
-      
+    // If file is uploaded, use Cloudinary
+    if (req.files && req.files.image) {
       await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           { folder: 'buddha-pos/menu-items' },
@@ -25,7 +18,7 @@ exports.createItem = async (req, res, next) => {
             }
           }
         );
-        stream.end(req.file.buffer);
+        stream.end(req.files.image[0].buffer);
       });
     }
     
@@ -70,7 +63,8 @@ exports.updateItem = async (req, res, next) => {
   try {
     let updateData = { ...req.body };
     
-    if (req.file) {
+    // If file is uploaded, use Cloudinary
+    if (req.files && req.files.image) {
       await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           { folder: 'buddha-pos/menu-items' },
@@ -82,7 +76,7 @@ exports.updateItem = async (req, res, next) => {
             }
           }
         );
-        stream.end(req.file.buffer);
+        stream.end(req.files.image[0].buffer);
       });
     }
     
