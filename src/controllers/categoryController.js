@@ -1,0 +1,111 @@
+const Category = require('../models/Category');
+const cloudinary = require('../config/cloudinary');
+
+exports.createItem = async (req, res, next) => {
+  try {
+    let imageUrl = null;
+    
+    if (req.file) {
+      const result = await cloudinary.uploader.upload_stream(
+        { folder: 'buddha-pos/menu-items' },
+        (error, result) => {
+          if (error) throw error;
+          return result;
+        }
+      );
+      
+      await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'buddha-pos/menu-items' },
+          (error, result) => {
+            if (error) reject(error);
+            else {
+              imageUrl = result.secure_url;
+              resolve(result);
+            }
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+    }
+    
+    const itemData = { ...req.body };
+    if (imageUrl) itemData.imageUrl = imageUrl;
+    
+    const item = await Category.create(itemData);
+    res.status(201).json(item);
+  } catch (err) { next(err); }
+};
+
+exports.getAllItems = async (req, res, next) => {
+  try {
+    const items = await Category.find();
+    res.json(items);
+  } catch (err) { next(err); }
+};
+
+exports.getItemsByCategory = async (req, res, next) => {
+  try {
+    const items = await Category.find({ categoryName: req.params.categoryName });
+    res.json(items);
+  } catch (err) { next(err); }
+};
+
+exports.getDistinctCategories = async (req, res, next) => {
+  try {
+    const categories = await Category.distinct('categoryName');
+    res.json(categories);
+  } catch (err) { next(err); }
+};
+
+exports.getItemById = async (req, res, next) => {
+  try {
+    const item = await Category.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+    res.json(item);
+  } catch (err) { next(err); }
+};
+
+exports.updateItem = async (req, res, next) => {
+  try {
+    let updateData = { ...req.body };
+    
+    if (req.file) {
+      await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'buddha-pos/menu-items' },
+          (error, result) => {
+            if (error) reject(error);
+            else {
+              updateData.imageUrl = result.secure_url;
+              resolve(result);
+            }
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+    }
+    
+    const updated = await Category.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    if (!updated) return res.status(404).json({ message: 'Item not found' });
+    res.json(updated);
+  } catch (err) { next(err); }
+};
+
+exports.deleteItem = async (req, res, next) => {
+  try {
+    const deleted = await Category.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: 'Item not found' });
+    res.json({ message: 'Item deleted successfully' });
+  } catch (err) { next(err); }
+};
+
+exports.toggleAvailability = async (req, res, next) => {
+  try {
+    const item = await Category.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+    item.isAvailable = !item.isAvailable;
+    await item.save();
+    res.json(item);
+  } catch (err) { next(err); }
+};
