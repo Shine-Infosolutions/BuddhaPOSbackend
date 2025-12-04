@@ -6,15 +6,9 @@ const connectDB = require('./config/database');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Connect to MongoDB
-connectDB();
-
 // Middleware
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://buddha-po-sbackend.vercel.app'
-  ],
+  origin: '*',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -22,9 +16,25 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Routes
-app.use('/api/categories', require('./routes/categoryRoutes'));
-app.use('/api/orders', require('./routes/orderRoutes'));
+// Connect to MongoDB only when needed
+let isConnected = false;
+const ensureConnection = async () => {
+  if (!isConnected) {
+    await connectDB();
+    isConnected = true;
+  }
+};
+
+// Routes with connection check
+app.use('/api/categories', async (req, res, next) => {
+  await ensureConnection();
+  next();
+}, require('./routes/categoryRoutes'));
+
+app.use('/api/orders', async (req, res, next) => {
+  await ensureConnection();
+  next();
+}, require('./routes/orderRoutes'));
 
 app.get('/', (req, res) => {
   res.json({ 
@@ -37,8 +47,16 @@ app.get('/', (req, res) => {
 });
 
 // Error handler
-app.use(require('./middlewares/errorHandler'));
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ message: err.message || 'Server error' });
 });
+
+// For Vercel
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
