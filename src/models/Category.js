@@ -5,21 +5,18 @@ const categorySchema = new mongoose.Schema(
     // UI Category (Starters, Beverages, Main Course, etc.)
     categoryName: {
       type: String,
-      required: true,
       trim: true
     },
 
     // Actual menu item name (Paneer Chilli, Cold Coffee, etc.)
     itemName: {
       type: String,
-      required: true,
       trim: true
     },
 
     // Price of the item
     price: {
       type: Number,
-      required: true,
       min: 0
     },
 
