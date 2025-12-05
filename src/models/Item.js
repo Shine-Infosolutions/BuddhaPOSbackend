@@ -4,18 +4,15 @@ const itemSchema = new mongoose.Schema(
   {
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: true
+      ref: "Category"
     },
     itemName: {
       type: String,
-      trim: true,
-      required: true
+      trim: true
     },
     price: {
       type: Number,
-      min: 0,
-      required: true
+      min: 0
     },
     qty: {
       type: Number,

@@ -1,4 +1,5 @@
 const Category = require('../models/Category');
+const { buildQueryOptions, buildCompleteQuery } = require('../utils/queryHelper');
 
 // Create category
 exports.createCategory = async (req, res, next) => {
@@ -8,11 +9,25 @@ exports.createCategory = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// Get all categories
+// Get all categories with pagination and search
 exports.getAllCategories = async (req, res, next) => {
   try {
-    const categories = await Category.find().sort({ createdAt: -1 });
-    res.json(categories);
+    const { page, limit, skip } = buildQueryOptions(req);
+    const query = buildCompleteQuery(req, ['categoryName']);
+    
+    const total = await Category.countDocuments(query);
+    const categories = await Category.find(query)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+    
+    res.json({
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data: categories
+    });
   } catch (err) { next(err); }
 };
 
