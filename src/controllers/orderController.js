@@ -21,20 +21,13 @@ exports.createOrder = async (req, res, next) => {
 
 exports.getOrders = async (req, res, next) => {
   try {
-    // Simple test - get all orders without any filters
-    const allOrders = await Order.find({});
-    console.log('Total orders in DB:', allOrders.length);
+    // Simple approach - just get all orders
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     
-    const { page, limit, skip } = buildQueryOptions(req);
-    const query = buildCompleteQuery(req, ['customerName', 'customerMobile', 'orderId', 'items.itemName']);
-    
-    // Additional filters
-    if (req.query.status) query.status = req.query.status;
-    
-    console.log('Query:', JSON.stringify(query));
-    
-    const total = await Order.countDocuments(query);
-    const orders = await Order.find(query)
+    const total = await Order.countDocuments({});
+    const orders = await Order.find({})
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
