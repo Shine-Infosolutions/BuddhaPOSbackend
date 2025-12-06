@@ -70,6 +70,7 @@ if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
     await connectDB();
+    console.log('MongoDB connected successfully');
   });
 }
 
