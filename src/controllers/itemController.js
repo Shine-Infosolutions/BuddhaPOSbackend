@@ -36,7 +36,11 @@ exports.createItem = async (req, res, next) => {
 // Bulk create items
 exports.bulkCreateItems = async (req, res, next) => {
   try {
-    const items = await Item.insertMany(req.body.items);
+    const itemsArray = Array.isArray(req.body) ? req.body : req.body.items;
+    if (!itemsArray || !Array.isArray(itemsArray)) {
+      return res.status(400).json({ message: 'items array is required' });
+    }
+    const items = await Item.insertMany(itemsArray);
     const populatedItems = await Item.find({ _id: { $in: items.map(i => i._id) } }).populate('categoryId');
     res.status(201).json({ count: items.length, data: populatedItems });
   } catch (err) { next(err); }
