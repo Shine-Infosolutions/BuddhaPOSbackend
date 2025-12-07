@@ -46,6 +46,12 @@ const orderSchema = new mongoose.Schema(
     notes: {
       type: String,
       trim: true
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: ["Cash", "Online"],
+      default: "Cash"
     }
   },
   { timestamps: true }
